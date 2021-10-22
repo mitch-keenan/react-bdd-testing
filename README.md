@@ -66,3 +66,121 @@ test("to not call the onclick when disabled", () => {
 	expect(mockFn).not.toHaveBeenCalled();
 });
 ```
+
+## Step 3: Clean-up
+
+This is great, we're testing our button by modifying it's props and verifying that it works as we expect when we do.
+However it feels a bit repetitive, we're writing the same set-up everytime. How could we refactor our tests to have less repetition? 
+
+Let's start by extracting the most repetitive part, the rendering of the button. We'll leverage jest's [beforeEach]() function to do this
+
+```jsx
+let props = { label: "My Button", onClick: jest.fn() };
+let button
+beforeEach(() => {
+	render(<Button {...props}/>);
+	button = screen.getByRole("button");
+});
+
+// Passes
+test("renders a button", () => {
+	expect(button).toBeInTheDocument();
+});
+
+// Passes
+test("renders a button with the passed label", () => {
+	expect(button.textContent).toBe("My Button");
+});
+
+// ... Others fail
+```
+
+This has a few implications:
+
+1. We need to wrap all of these tests in a [describe]() block so we don't leak this `beforeEach` call into the global scope:
+
+	```jsx
+	describe('Button', () => {
+		let props = { label: "My Button", onClick: jest.fn() };
+		let button
+		beforeEach(() => {
+			render(<Button {...props}/>);
+			button = screen.getByRole("button");
+		});
+
+		// other tests
+	});
+	```
+
+2. We can now reference the props object in our tests, instead of using variables or repeating the strings, for example
+
+	```jsx
+	test("renders a button with the passed label", () => {
+		// Old: Fragile & repetitive
+		expect(button.textContent).toBe('My Button');
+		// New: Resilient & DRY
+		expect(button.textContent).toBe(props.label);
+	});
+	```
+
+3. We need a way to make the final test work, where the prop disabled must be changed to true. We can again apply describe blocks and the use of [beforeAll]() which will always happens prior to `beforeEach`
+
+	```jsx
+	describe('Button', () => {
+		let props = { label: "My Button", onClick: jest.fn() };
+		let button
+		beforeEach(() => {
+			render(<Button {...props}/>);
+			button = screen.getByRole("button");
+		});
+
+		describe('when disabled', () => {
+			beforeAll(() => {
+				props.disabled = true
+			})
+
+			// Now passes
+			test("to not call the onclick when disabled", () => {
+				userEvent.click(button);
+				expect(props.onClick).not.toHaveBeenCalled();
+			});
+		})
+	});
+	```
+
+So that brings us to the final version of our test file for step 3
+
+```jsx
+describe("Button", () => {
+	let props = { label: "My Button", onClick: jest.fn() };
+	let button;
+	beforeEach(() => {
+		render(<Button {...props} />);
+		button = screen.getByRole("button");
+	});
+
+	test("renders a button", () => {
+		expect(button).toBeInTheDocument();
+	});
+
+	test("renders a button with the passed label", () => {
+		expect(button.textContent).toBe(props.label);
+	});
+
+	test("calls the onclick function when clicked", () => {
+		userEvent.click(button);
+		expect(props.onClick).toHaveBeenCalledTimes(1);
+	});
+
+	describe("when disabled", () => {
+		beforeAll(() => {
+			props.disabled = true;
+		});
+
+		test("to not call the onclick when disabled", () => {
+			userEvent.click(button);
+			expect(props.onClick).not.toHaveBeenCalled();
+		});
+	});
+});
+```

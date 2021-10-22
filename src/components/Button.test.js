@@ -2,30 +2,35 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Button from "./Button";
 
-test("renders a button", () => {
-	render(<Button />);
-	const button = screen.getByRole("button");
-	expect(button).toBeInTheDocument();
-});
+describe("Button", () => {
+	let props = { label: "My Button", onClick: jest.fn() };
+	let button;
+	beforeEach(() => {
+		render(<Button {...props} />);
+		button = screen.getByRole("button");
+	});
 
-test("renders a button with the passed label", () => {
-	render(<Button label="My Button" />);
-	const button = screen.getByRole("button");
-	expect(button.textContent).toBe("My Button");
-});
+	test("renders a button", () => {
+		expect(button).toBeInTheDocument();
+	});
 
-test("calls the onclick function when clicked", () => {
-	const mockFn = jest.fn();
-	render(<Button onClick={mockFn} />);
-	const button = screen.getByRole("button");
-	userEvent.click(button);
-	expect(mockFn).toHaveBeenCalledTimes(1);
-});
+	test("renders a button with the passed label", () => {
+		expect(button.textContent).toBe(props.label);
+	});
 
-test("to not call the onclick when disabled", () => {
-	const mockFn = jest.fn();
-	render(<Button onClick={mockFn} disabled />);
-	const button = screen.getByRole("button");
-	userEvent.click(button);
-	expect(mockFn).not.toHaveBeenCalled();
+	test("calls the onclick function when clicked", () => {
+		userEvent.click(button);
+		expect(props.onClick).toHaveBeenCalledTimes(1);
+	});
+
+	describe("when disabled", () => {
+		beforeAll(() => {
+			props.disabled = true;
+		});
+
+		test("to not call the onclick when disabled", () => {
+			userEvent.click(button);
+			expect(props.onClick).not.toHaveBeenCalled();
+		});
+	});
 });
