@@ -184,3 +184,123 @@ describe("Button", () => {
 	});
 });
 ```
+
+## Step 4: A bug and a fix!
+
+We've introduced a potential bug into our test file! If we swap the order of test 3 and 4, putting the `when disabled` describe block first, the 4th test will fail. This is because we modified our props object in the `beforeAll` and never undid that modification. So we need to add an `afterAll` to that describe block to reset it:
+
+```jsx
+describe("when disabled", () => {
+	beforeAll(() => {
+		props.disabled = true;
+	});
+
+	// We needed this!
+	afterAll(() => {
+		props.disabled = undefined;
+	});
+
+	test("to not call the onclick when disabled", () => {
+		userEvent.click(button);
+		expect(props.onClick).not.toHaveBeenCalled();
+	});
+});
+```
+
+Whew, dodged a bullet! Now our test file is in great shape! And you can see a pattern emerge for how we test changing a prop in our component in order to test the results:
+
+```jsx
+describe("when prop A is X", () => {
+	beforeAll(() => {
+		props.A = X;
+	});
+
+	afterAll(() => {
+		props.A = 'whatever it was by default'
+	});
+
+	// test the functionality that differs when prop A is X
+});
+```
+
+However I'm sure you could also see that this itself will get repetitive, how can we fix that? Let's try making a utility function:
+
+```jsx
+// In a newly created src/testUtils.js
+const temporarilySet = (object, propertyName, temporaryValue) => {
+	const originalValue = object[propertyName]
+	beforeAll(() => {
+		object[propertyName] = temporaryValue
+	})
+
+	afterAll(() => {
+		object[propertyName] = originalValue
+	})
+}
+```
+
+which simplifies our test file to:
+
+```jsx
+import { setTemp } from "../testUtils";
+
+describe("Button", () => {
+	// ... Setup and other tests
+
+	describe("when disabled", () => {
+		temporarilySet(props, "disabled", true); // Nice and clean!!
+
+		test("to not call the onclick when disabled", () => {
+			userEvent.click(button);
+			expect(props.onClick).not.toHaveBeenCalled();
+		});
+	});
+});
+```
+
+Wow! that looks clean, now we could add lots more of describe blocks and not feel so bad!
+
+## Step 5: Enter bdd-lazy-var
+
+We've just re-implemented one of the core functions of bdd-lazy-var, the `def` function. Let's add bdd-lazy var and change our 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
