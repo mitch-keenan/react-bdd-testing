@@ -35,3 +35,34 @@ import Button from "./Button";
 	expect(button).toBeInTheDocument();
 });
 ```
+
+## Step 2: More Tests
+
+Now I'll add some more tests to validate some of the functionality of our button.
+
+```jsx
+// ./src/components/Button.test.js
+// ...
+// New tests
+test("renders a button with the passed label", () => {
+	render(<Button label="My Button" />);
+	const button = screen.getByRole("button");
+	expect(button.textContent).toBe("My Button");
+});
+
+test("calls the onclick function when clicked", () => {
+	const mockFn = jest.fn();
+	render(<Button onClick={mockFn} />);
+	const button = screen.getByRole("button");
+	userEvent.click(button);
+	expect(mockFn).toHaveBeenCalledTimes(1);
+});
+
+test("to not call the onclick when disabled", () => {
+	const mockFn = jest.fn();
+	render(<Button onClick={mockFn} disabled />);
+	const button = screen.getByRole("button");
+	userEvent.click(button);
+	expect(mockFn).not.toHaveBeenCalled();
+});
+```
