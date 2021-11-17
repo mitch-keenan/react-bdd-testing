@@ -1,8 +1,8 @@
-# Intro to BDD testing in React with bdd-lazy-var
+# Intro to BDD testing in React
 
-This will be an example readme/blog-post stepping through how I arrived at my heavily BDD based testing approach for React and how you can use the fantastic `bdd-lazy-var` package to make testing a breeze!
+This will be an example readme/blog-post stepping through how I arrived at my heavily BDD based testing approach for React to make testing a breeze!
 
-We'll start at a bare [create-react-app](https://github.com/stalniy/bdd-lazy-var) repo and step through the process to first show the type of tests we end up writing with BDD and then how to apply the `bdd-lazy-var` package to make things easier.
+We'll start at a bare [create-react-app](https://create-react-app.dev/) repo and step through the process from a basic test all the way to BDD using some custom utility functions.
 I show code examples for each step of this as well as a link to a diff for the given changes from the last example. Feel free to dive into the repo at anytime as each step is tagged in the repo.
 
 ## Step 1: Our Component
@@ -36,6 +36,8 @@ import Button from "./Button";
 });
 ```
 
+[Commit diff can be found here](https://github.com/mitch-keenan/react-bdd-testing/commit/6023928e484dcdffa6f55fcc8906644318dfb996)
+
 ## Step 2: More Tests
 
 Now I'll add some more tests to validate some of the functionality of our button.
@@ -66,6 +68,8 @@ test("to not call the onclick when disabled", () => {
 	expect(mockFn).not.toHaveBeenCalled();
 });
 ```
+
+[Commit diff can be found here](https://github.com/mitch-keenan/react-bdd-testing/commit/eb138be0e6abf1a80353194ba8aa919b639eb6ca)
 
 ## Step 3: Clean-up
 
@@ -185,6 +189,8 @@ describe("Button", () => {
 });
 ```
 
+[Commit diff can be found here](https://github.com/mitch-keenan/react-bdd-testing/commit/07227a0b79a905cae696c833b72577ca2d5054c1)
+
 ## Step 4: A bug and a fix!
 
 We've introduced a potential bug into our test file! If we swap the order of test 3 and 4, putting the `when disabled` describe block first, the 4th test will fail. This is because we modified our props object in the `beforeAll` and never undid that modification. So we need to add an `afterAll` to that describe block to reset it:
@@ -242,7 +248,7 @@ const temporarilySet = (object, propertyName, temporaryValue) => {
 which simplifies our test file to:
 
 ```jsx
-import { setTemp } from "../testUtils";
+import { temporarilySet } from "../testUtils";
 
 describe("Button", () => {
 	// ... Setup and other tests
@@ -260,9 +266,11 @@ describe("Button", () => {
 
 Wow! that looks clean, now we could add lots more of describe blocks and not feel so bad!
 
+[Commit diff can be found here](https://github.com/mitch-keenan/react-bdd-testing/commit/8a13ce3b9b30169442e64a67ba885b6b24291126)
+
 ## Step 5: Enter bdd-lazy-var
 
-We've just re-implemented one of the core functions of bdd-lazy-var, the `def` function. Let's add bdd-lazy var and change our 
+We've just re-implemented one of the core functions of [bdd-lazy-var](https://github.com/stalniy/bdd-lazy-var), the `def` function. The next step would be to introduce this library to simplify how we write our tests. Unfortunately, [bdd-lazy-var does not currently support the new jest-circus test-runner](https://github.com/stalniy/bdd-lazy-var/issues/97#issuecomment-773135944) which is now the [default in new CRA projects](https://jestjs.io/blog/2021/05/25/jest-27#flipping-defaults). Until it does this tutorial will stop here :(
 
 
 
